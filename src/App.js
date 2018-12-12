@@ -3,7 +3,7 @@ import './App.css';
 
 import * as parse from 'csv-parse/lib/sync';
 import * as file from './util/file';
-import { processTransactionRecord } from './util/crypto';
+import { processTransactionRecord, computeCapitalGains } from './util/crypto';
 
 class App extends Component {
   fileInput = React.createRef();
@@ -52,6 +52,14 @@ class App extends Component {
               );
             })}
           </tbody>
+          <tfoot>
+            <tr>
+              <th>
+                Cost Basis
+              </th>
+              <td colSpan="3">{computeCapitalGains(this.state.transactions)}</td>
+            </tr>
+          </tfoot>
         </table>
       </div>
     );
