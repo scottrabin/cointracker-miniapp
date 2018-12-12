@@ -3,6 +3,7 @@ import './App.css';
 
 import * as parse from 'csv-parse/lib/sync';
 import * as file from './util/file';
+import { processTransactionRecord } from './util/crypto';
 
 class App extends Component {
   fileInput = React.createRef();
@@ -36,6 +37,7 @@ class App extends Component {
               <th>Date</th>
               <th>Sent</th>
               <th>Received</th>
+              <th>Value</th>
             </tr>
           </thead>
           <tbody>
@@ -45,6 +47,7 @@ class App extends Component {
                   <td>{txn.date.toLocaleString()}</td>
                   <td>{`${txn.sent.quantity} ${txn.sent.currency}`}</td>
                   <td>{`${txn.received.quantity} ${txn.received.currency}`}</td>
+                  <td>{isCryptoExchange(txn) ? `$${txn.sent.quantity * txn.sent.value}` : ""}</td>
                 </tr>
               );
             })}
@@ -65,21 +68,7 @@ class App extends Component {
         return contents;
       })
       .then(contents => parse(contents, { skip_empty_lines: true }).slice(1))
-      .then(transactions => {
-        return transactions.map(([date, receivedQty, receivedCurrency, sentQty, sentCurrency]) => {
-          return {
-            date: new Date(date),
-            received: {
-              currency: receivedCurrency,
-              quantity: parseInt(receivedQty, 10),
-            },
-            sent: {
-              currency: sentCurrency,
-              quantity: parseInt(sentQty, 10),
-            },
-          };
-        });
-      })
+      .then(processTransactionRecord)
       .then(transactions => {
         console.table(transactions);
         this.setState(s => ({ ...s, transactions }));
@@ -88,3 +77,7 @@ class App extends Component {
 }
 
 export default App;
+
+function isCryptoExchange(txn) {
+  return txn.sent.currency !== "USD" && txn.received.currency !== "USD";
+}
